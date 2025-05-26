@@ -153,18 +153,44 @@ def get_can_use_cache(first_hidden_states_residual,
     cache_context = get_current_cache_context()
     if cache_context is None or prev_first_hidden_states_residual is None:
         return False
+
+    # Determine if only shape should be compared
+    perform_only_shape_check = (cache_context.sequence_num > 0 and
+                                not cache_context.force_value_comparison_for_sequence)
+
     can_use_cache = are_two_tensors_similar(
         prev_first_hidden_states_residual,
         first_hidden_states_residual,
         threshold=threshold,
-        only_shape=cache_context.sequence_num > 0,
+        only_shape=perform_only_shape_check, # Use the new logic here
     )
     if cache_context.sequence_num > 0:
-        cache_context.use_cache &= can_use_cache
+        # If it's a subsequent sequence call, the primary decision for use_cache
+        # was made by the first call in the sequence (sequence_num == 0).
+        # Here, we just AND with the current similarity check.
+        # The overall cache_context.use_cache is set when sequence_num == 0.
+        # If any part of a sequence is not similar, use_cache for the whole sequence becomes false.
+        cache_context.use_cache = cache_context.use_cache and can_use_cache
+        # The 'can_use_cache' returned by this function call for sequence_num > 0
+        # should reflect the current check, not necessarily the whole sequence state.
+        # However, the existing logic seems to imply cache_context.use_cache is the return value.
+        # Let's stick to modifying only the 'only_shape' part and re-evaluate if behavior is unexpected.
+        # The original logic for cache_context.use_cache updates might need refinement,
+        # but the task is specific to 'only_shape'.
     else:
+        # This is the first call in a potential sequence (or not a sequence)
         if validation_function is not None:
             can_use_cache = validation_function(can_use_cache)
         cache_context.use_cache = can_use_cache
+    
+    # The function should return the status of *this specific* cache check,
+    # but also maintain the overall cache_context.use_cache state.
+    # The original code returns cache_context.use_cache. Let's maintain that for now.
+    # If cache_context.sequence_num > 0, it means cache_context.use_cache was already set
+    # by the sequence_num == 0 call. And then it's ANDed.
+    # So, if can_use_cache is False here (seq_num > 0), context.use_cache becomes False.
+    # If can_use_cache is True, context.use_cache remains what it was (potentially True from seq_num=0).
+    # This seems correct.
     return cache_context.use_cache
 
 
