@@ -1,4 +1,4 @@
-from .fbcache_nodes import ApplyFBCacheOnModel
+from .fbcache_nodes import ApplyFBCacheOnModel, ApplyFBCacheOnModelStochastic
 from .misc_nodes import (
     EnhancedLoadDiffusionModel,
     EnhancedCompileModel,
@@ -34,6 +34,7 @@ patch_cast_to()
 
 NODE_CLASS_MAPPINGS = {
     "ApplyFBCacheOnModel": ApplyFBCacheOnModel,
+    "ApplyFBCacheOnModelStochastic": ApplyFBCacheOnModelStochastic,
     "EnhancedLoadDiffusionModel": EnhancedLoadDiffusionModel,
     "EnhancedCompileModel": EnhancedCompileModel,
     "VelocatorLoadAndQuantizeDiffusionModel": VelocatorLoadAndQuantizeDiffusionModel,
@@ -44,6 +45,7 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ApplyFBCacheOnModel": "Apply First Block Cache",
+    "ApplyFBCacheOnModelStochastic": "Apply First Block Cache (Stochastic)",
     "EnhancedLoadDiffusionModel": "Load Diffusion Model+",
     "EnhancedCompileModel": "Compile Model+",
     "VelocatorLoadAndQuantizeDiffusionModel": "🚀Load & Quantize Diffusion Model",
